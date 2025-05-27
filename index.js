@@ -77,6 +77,9 @@ document.addEventListener("DOMContentLoaded", function () {
   elements.progress.circle.setAttribute("stroke-dasharray", CIRCUMFERENCE);
   elements.progress.circle.setAttribute("stroke-dashoffset", CIRCUMFERENCE);
 
+  // Array to store all dropdown instances
+  const dropdownInstances = [];
+
   // Function to setup custom dropdown with search
   function setupCustomDropdown(
     buttonId,
@@ -93,12 +96,54 @@ document.addEventListener("DOMContentLoaded", function () {
     const hiddenInput = document.getElementById(hiddenInputId);
     const options = optionsContainer.querySelectorAll(".dropdown-option");
 
-    // Toggle dropdown visibility
-    button.addEventListener("click", () => {
+    // Add this dropdown to the instances array
+    const dropdownInstance = { menu };
+    dropdownInstances.push(dropdownInstance);
+
+    // Function to close all other dropdowns
+    function closeOtherDropdowns(currentMenuId) {
+      dropdownInstances.forEach((instance) => {
+        if (
+          instance.menu.id !== currentMenuId &&
+          !instance.menu.classList.contains("hidden")
+        ) {
+          instance.menu.classList.add("hidden");
+        }
+      });
+    }
+
+    // Toggle dropdown visibility and scroll to ensure visibility
+    button.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent event bubbling
+      const isOpen = !menu.classList.contains("hidden");
+      if (!isOpen) {
+        // Close all other dropdowns before opening this one
+        closeOtherDropdowns(menuId);
+      }
       menu.classList.toggle("hidden");
       if (!menu.classList.contains("hidden")) {
         search.focus();
+        // Scroll to make the dropdown fully visible
+        menu.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "nearest",
+        });
       }
+    });
+
+    // Prevent dropdown menu from closing when clicking inside
+    menu.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    // Handle touch events for scrolling within options container
+    optionsContainer.addEventListener("touchstart", (e) => {
+      e.stopPropagation(); // Allow touchstart for scrolling options
+    });
+
+    optionsContainer.addEventListener("touchmove", (e) => {
+      e.stopPropagation(); // Allow touchmove for scrolling options
     });
 
     // Close dropdown when clicking outside
